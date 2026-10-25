@@ -75,6 +75,20 @@ input[type=number] { font-variant-numeric: tabular-nums; }
 .toggle { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; font-weight: 600; }
 .toggle input { width: 22px; height: 22px; accent-color: var(--accent); }
 .sub { padding-left: 14px; border-left: 2px solid var(--line); }
+/* Setup: links Chips + Ergebnis (mitlaufend), rechts Spieler/Geld und Zeit */
+.setup-grid { display: grid; gap: 16px; grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 900px) { .setup-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .setup-side { position: sticky; top: 76px; } }
+#view-setup .row { align-items: start; }
+#view-setup .row > .btn { margin-top: 22px; }
+#view-setup .row.btns > .btn { margin-top: 0; }
+#view-setup .panel h3 { margin: 0; }
+.fold > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary::after { content: '▾'; color: var(--muted); font-size: 1.1rem; transition: transform .15s; }
+.fold:not([open]) > summary::after { transform: rotate(-90deg); }
+.fold[open] > summary { margin-bottom: 14px; }
+.fold-sub { color: var(--muted); font-size: .9rem; font-weight: 400; text-align: right; }
+#setupSummary .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 .chip-rows { display: flex; flex-direction: column; gap: 8px; }
 .chip-row { display: grid; grid-template-columns: 40px minmax(0,1fr) minmax(0,1fr) minmax(0,1.2fr) 44px; gap: 8px; align-items: center; }
@@ -243,26 +257,28 @@ body.fs .clock-main { min-height: calc(100vh - 24px - env(safe-area-inset-top, 0
     <div class="panel stack">
       <h3 style="margin:0">Vorlagen</h3>
       <div class="row">
-        <div class="field" style="flex:2 1 220px"><label for="presetSel">Gespeicherte Vorlage</label><select id="presetSel"></select></div>
+        <div class="field" style="flex:3 1 240px"><label for="presetSel">Gespeicherte Vorlage</label><select id="presetSel"></select></div>
         <button class="btn" type="button" id="presetLoad">Laden</button>
         <button class="btn" type="button" id="presetUpdate" hidden>Änderungen speichern</button>
         <button class="btn danger" type="button" id="presetDelBtn">Löschen</button>
         <span id="presetDelBox" class="row" hidden><button class="btn danger" type="button" id="presetDelYes">Ja, löschen</button><button class="btn" type="button" id="presetDelNo">Abbrechen</button></span>
       </div>
       <div class="row">
-        <div class="field" style="flex:2 1 220px"><label for="presetName">Als neue Vorlage speichern</label><input type="text" id="presetName" placeholder="z. B. Samstagsrunde 8 Spieler"></div>
+        <div class="field" style="flex:3 1 240px"><label for="presetName">Als neue Vorlage speichern</label><input type="text" id="presetName" placeholder="z. B. Samstagsrunde 8 Spieler"></div>
         <button class="btn" type="button" id="presetSave">Neu speichern</button>
         <button class="btn" type="button" id="presetBlank">Leere Vorlage beginnen</button>
       </div>
       <p id="presetState" class="preset-state" hidden></p>
       <p class="note" style="margin:0"><span id="presetMsg"></span> <span id="presetWhere"></span> Gespeichert werden Chips, Spieler und Namen, Preise, Rebuys, Zeiten, deine bearbeitete Blindstruktur, die Auszahlung und die Stimme.</p>
     </div>
-    <div class="grid">
-      <div class="panel stack">
-        <h3>Chips im Koffer</h3>
-        <div class="chip-rows" id="chipRows"></div>
-        <div class="row"><button class="btn small" id="addChip" type="button">+ Chipsorte hinzufügen</button></div>
-        <p class="note" id="chipTotal"></p>
+    <div class="setup-grid">
+      <div class="stack setup-side">
+        <div class="panel stack" id="setupSummary"></div>
+        <div class="panel stack">
+          <h3>Chips im Koffer</h3>
+          <div class="chip-rows" id="chipRows"></div>
+          <div class="row btns" style="align-items:center;justify-content:space-between"><button class="btn small" id="addChip" type="button">+ Chipsorte hinzufügen</button><p class="note" id="chipTotal" style="margin:0"></p></div>
+        </div>
       </div>
       <div class="stack">
         <div class="panel stack">
@@ -317,20 +333,19 @@ body.fs .clock-main { min-height: calc(100vh - 24px - env(safe-area-inset-top, 0
             <div class="field"><label for="breakList">Pausen einzeln (Minuten, mit Komma)</label><input id="breakList" type="text" inputmode="numeric" placeholder="z. B. 10, 60, 10" data-k="breakList"><span class="hint">1. Pause, 2. Pause, … Fehlende nutzen die Pausenlänge oben.</span></div>
           </div>
           <div class="row">
-            <div class="field"><label for="countdownMin">Countdown vor dem Start (Min.)</label><input id="countdownMin" type="number" min="0" max="60" inputmode="numeric" data-k="countdownMin"><span class="hint">0 = ohne Countdown</span></div>
+            <div class="field"><label for="countdownMin">Countdown vor Start (Min.)</label><input id="countdownMin" type="number" min="0" max="60" inputmode="numeric" data-k="countdownMin"><span class="hint">0 = ohne Countdown</span></div>
+            <div class="field"><label for="stackOverride">Startstack selbst festlegen</label><input id="stackOverride" type="number" min="0" inputmode="numeric" placeholder="Automatisch" data-k="stackOverride"><span class="hint">Leer = berechneter Wert</span></div>
           </div>
           <label class="toggle"><input type="checkbox" id="anteOn" data-k="anteOn"> Big-Blind-Ante</label>
           <div class="sub row" id="anteBox">
-            <div class="field"><label for="anteFrom">ab Level</label><input id="anteFrom" type="number" min="1" inputmode="numeric" data-k="anteFrom"></div>
-          </div>
-          <div class="row">
-            <div class="field"><label for="stackOverride">Startstack selbst festlegen</label><input id="stackOverride" type="number" min="0" inputmode="numeric" placeholder="Automatisch" data-k="stackOverride"><span class="hint">Leer lassen für den berechneten Wert</span></div>
+            <div class="field" style="max-width:200px"><label for="anteFrom">ab Level</label><input id="anteFrom" type="number" min="1" inputmode="numeric" data-k="anteFrom"></div>
           </div>
         </div>
       </div>
     </div>
-        <div id="voicePanel" class="panel stack">
-          <h3 style="margin:0">Stimme und Musik</h3>
+        <details id="voicePanel" class="panel fold">
+          <summary><h3>Stimme und Musik</h3><span class="fold-sub" id="voiceSummary"></span></summary>
+          <div class="stack">
           <div class="row">
             <div class="field" style="flex:2 1 260px"><label for="voiceSel">Stimme</label><select id="voiceSel"></select></div>
             <div class="field"><label for="voiceRate">Tempo <span id="rateVal"></span></label><input type="range" id="voiceRate" min="0.7" max="1.3" step="0.05"></div>
@@ -354,8 +369,8 @@ body.fs .clock-main { min-height: calc(100vh - 24px - env(safe-area-inset-top, 0
             <p class="note" style="margin:0" id="soundTestMsg"></p>
           </details>
           <p class="note" style="margin:0">Kommen Ansage oder Musik nur aus dem iPad, obwohl der Lautsprecher verbunden ist: hier „Über den Lautsprecher“ wählen. Die Ansage nutzt dann die Stimme „Thorsten (Aufnahme)“, denn die Safari-Stimmen spielt das iPad immer selbst ab.</p>
-        </div>
-    <div class="panel stack" id="setupSummary"></div>
+          </div>
+        </details>
   </section>
 
   <!-- SPIELER -->
@@ -749,8 +764,8 @@ function renderSetupSummary() {
   const tv = S.chips.reduce((a, c) => a + num(c.v) * num(c.n), 0), tn = S.chips.reduce((a, c) => a + num(c.n), 0);
   $('chipTotal').textContent = `${fmt(tn)} Chips mit zusammen ${fmt(tv)} Punkten.`;
   if (p.error) { el.innerHTML = `<div class="warn">${esc(p.error)}</div>`; return; }
-  el.innerHTML = `<div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">Ergebnis</h3>
-    <button class="btn primary" type="button" data-goto="struktur">Blindstruktur ansehen</button></div>
+  el.innerHTML = `<div class="row btns" style="justify-content:space-between;align-items:center"><h3 style="margin:0">Berechnet</h3>
+    <button class="btn primary small" type="button" data-goto="struktur">Blindstruktur ansehen</button></div>
     <div class="facts">
       <div class="fact"><div class="v">${fmt(p.S)}</div><div class="k">Startstack (${fmt(p.depth)} BB)</div></div>
       <div class="fact"><div class="v">${fmt(p.BB0 / 2)}/${fmt(p.BB0)}</div><div class="k">Start-Blinds</div></div>
@@ -1016,7 +1031,7 @@ function fillVoices() {
     ? 'Stimmen mit ★ klingen am natürlichsten. Die beste wird automatisch gewählt.'
     : 'Auf diesem Gerät gibt es keine hochwertige deutsche Stimme. Auf dem iPad: Einstellungen › Bedienungshilfen › Gesprochene Inhalte › Stimmen › Deutsch, dort z. B. „Anna (Premium)“ oder „Helena (Erweitert)“ laden und die Seite neu öffnen. Am Rechner klingen Chrome und Edge mit ihren Google- bzw. Natural-Stimmen deutlich besser.';
   $('voiceRate').value = voiceRate; $('voicePitch').value = voicePitch;
-  $('voiceVol').value = voiceVol; $('voiceVolVal').textContent = Math.round(voiceVol * 100) + ' %';
+  voiceSummary(); $('voiceVol').value = voiceVol; $('voiceVolVal').textContent = Math.round(voiceVol * 100) + ' %';
   $('rateVal').textContent = Math.round(voiceRate * 100) + ' %'; $('pitchVal').textContent = Math.round(voicePitch * 100) + ' %';
 }
 try { speechSynthesis.addEventListener('voiceschanged', fillVoices); } catch (e) {}
@@ -1335,12 +1350,14 @@ document.addEventListener('click', (e) => {
   else if (a === 'minus') adjust(-60000);
 });
 $('soundBtn').addEventListener('click', () => { soundOn = !soundOn; savePrefs(); if (soundOn) tone(660, .2); updateTimer(true); });
-$('voiceBtn').addEventListener('click', () => { document.body.classList.remove('fs'); showTab('setup'); fillVoices(); fillMusic(); setTimeout(() => $('voicePanel').scrollIntoView({behavior: 'smooth', block: 'start'}), 50); });
+$('voiceBtn').addEventListener('click', () => { document.body.classList.remove('fs'); showTab('setup'); fillVoices(); fillMusic(); $('voicePanel').open = true; setTimeout(() => $('voicePanel').scrollIntoView({behavior: 'smooth', block: 'start'}), 50); });
 $('voiceSel').addEventListener('change', (e) => { voiceName = e.target.value; savePrefs(); say('Level 4. Die Blinds sind jetzt 40 und 80.', 0, true, ['level', 4, '|', 'blinds_now', 40, 'und', 80]); });
 $('voiceRate').addEventListener('input', (e) => { voiceRate = num(e.target.value, 1); savePrefs(); fillVoices(); });
 $('voicePitch').addEventListener('input', (e) => { voicePitch = num(e.target.value, 1); savePrefs(); fillVoices(); });
-function fillMusic() { $('musicTrack').value = musicTrack; $('musicOn').checked = musicOn; $('musicVol').value = musicVol; $('musicVolVal').textContent = Math.round(musicVol * 100) + ' %'; }
-$('musicOn').addEventListener('change', (e) => { musicOn = e.target.checked; saveMusic(); if (!musicOn) stopMusic(); });
+function voiceSummary() { const el = $('voiceSummary'); if (!el) return; const v = voiceName === '__rec' ? 'Thorsten' : (pickVoice() || {}).name || 'Standardstimme';
+  el.textContent = `${speakOn ? 'Ansage: ' + v.split(' (')[0] : 'Ansage aus'} · ${musicOn ? 'Musik an' : 'Musik aus'}`; }
+function fillMusic() { voiceSummary(); $('musicTrack').value = musicTrack; $('musicOn').checked = musicOn; $('musicVol').value = musicVol; $('musicVolVal').textContent = Math.round(musicVol * 100) + ' %'; }
+$('musicOn').addEventListener('change', (e) => { musicOn = e.target.checked; saveMusic(); if (!musicOn) stopMusic(); voiceSummary(); });
 $('musicTrack').addEventListener('change', (e) => { musicTrack = e.target.value; saveMusic(); });
 $('musicVol').addEventListener('input', (e) => { musicVol = num(e.target.value, .6); saveMusic(); fillMusic(); });
 let musicPreview = false;
