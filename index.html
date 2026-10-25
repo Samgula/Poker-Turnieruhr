@@ -252,6 +252,7 @@ body.fs .clock-main { min-height: calc(100vh - 24px - env(safe-area-inset-top, 0
       <div class="row">
         <div class="field" style="flex:2 1 220px"><label for="presetName">Als neue Vorlage speichern</label><input type="text" id="presetName" placeholder="z. B. Samstagsrunde 8 Spieler"></div>
         <button class="btn" type="button" id="presetSave">Neu speichern</button>
+        <button class="btn" type="button" id="presetBlank">Leere Vorlage beginnen</button>
       </div>
       <p id="presetState" class="preset-state" hidden></p>
       <p class="note" style="margin:0"><span id="presetMsg"></span> <span id="presetWhere"></span> Gespeichert werden Chips, Spieler und Namen, Preise, Rebuys, Zeiten, deine bearbeitete Blindstruktur, die Auszahlung und die Stimme.</p>
@@ -1707,6 +1708,10 @@ async function deletePreset() {
 }
 $('presetSave').addEventListener('click', savePreset);
 $('presetUpdate').addEventListener('click', updatePreset);
+$('presetBlank').addEventListener('click', () => { // alles auf Grundeinstellungen, keine Vorlage geladen
+  S = JSON.parse(JSON.stringify(DEFAULTS)); S.seating = null; save(KS, S); setLoaded(''); renderAll();
+  renderPresets(`Grundeinstellungen geladen. Jetzt einstellen, Namen eintragen und „Neu speichern“ antippen.${LIVE ? ' Das laufende Turnier bleibt unverändert.' : ''}`); $('presetName').focus();
+});
 $('presetSel').addEventListener('change', () => { presetPicked = true; renderPresetState(); });
 $('presetName').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); savePreset(); } });
 $('presetLoad').addEventListener('click', loadPreset);
